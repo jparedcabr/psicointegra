@@ -2,10 +2,6 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowRight, CheckCircle } from 'lucide-react';
-import axios from 'axios';
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 const WellnessTest = () => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -112,18 +108,28 @@ const WellnessTest = () => {
     }
   };
 
-  const handleSubmit = async () => {
-    try {
-      const response = await axios.post(`${API}/wellness-test`, {
-        name: userInfo.name || undefined,
-        email: userInfo.email || undefined,
-        answers
-      });
-      
-      setResult(response.data);
-    } catch (error) {
-      console.error('Error submitting wellness test:', error);
+  // NUEVA FUNCIÓN: Cálculo local e instantáneo
+  const handleSubmit = () => {
+    // 1. Sumamos todas las respuestas
+    const score = Object.values(answers).reduce((total, valor) => total + valor, 0);
+
+    // 2. Determinamos la categoría según el puntaje
+    let category = '';
+    if (score >= 32) {
+      category = 'Excelente bienestar';
+    } else if (score >= 24) {
+      category = 'Buen bienestar';
+    } else if (score >= 16) {
+      category = 'Bienestar moderado';
+    } else {
+      category = 'Necesita atención';
     }
+
+    // 3. Mostramos el resultado inmediatamente
+    setResult({
+      score: score,
+      category: category
+    });
   };
 
   const progress = ((Object.keys(answers).length / questions.length) * 100).toFixed(0);
